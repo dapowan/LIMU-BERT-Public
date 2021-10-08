@@ -1,0 +1,94 @@
+{
+	"dcnn_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"flat_num": 1
+	},
+	"deepsense_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"flat_num": 992
+	},
+	"tpn_v1":
+	{
+		"seq_len": 20,
+		"input": 6
+	},
+	"lstm_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_rnn": 2,
+		"num_layers": [2, 1],
+		"rnn_io": [[6,20], [20, 10]],
+		"num_linear": 1,
+		"linear_io": [[10, 3]],
+		"activ": false,
+		"dropout": true
+	},
+	"gru_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_rnn": 2,
+		"num_layers": [2, 1],
+		"rnn_io": [[6,20], [20, 10]],
+		"num_linear": 1,
+		"linear_io": [[10, 3]],
+		"activ": false,
+		"dropout": false
+	},
+	"gru_v2":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_rnn": 2,
+		"num_layers": [2, 1],
+		"rnn_io": [[6,20], [20, 10]],
+		"num_linear": 1,
+		"linear_io": [[10, 3]],
+		"activ": false,
+		"dropout": true
+	},
+	"cnn2_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_cnn": 3,
+		"conv_io": [[8, 16, 3, 0], [16, 8, 3, 0], [8, 4, 3, 0]],
+		"pool": [3, [1, 2], 0],
+		"flat_num": 192,
+		"num_linear": 2,
+		"linear_io": [[0, 12], [12, 0]],
+		"activ": false,
+		"dropout": true
+	},
+	"cnn1_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_cnn": 3,
+		"conv_io": [[8, 16, 5, 0], [16, 8, 3, 0], [8, 4, 3, 0]],
+		"pool": [3, 1, 0],
+		"flat_num": 232,
+		"num_linear": 2,
+		"linear_io": [[0, 12], [12, 0]],
+		"activ": true,
+		"dropout": true
+	},
+	"attn_v1":
+	{
+		"seq_len": 20,
+		"input": 6,
+		"num_attn": 1,
+    	"num_head": 4,
+    	"atten_hidden": 36,
+		"num_linear": 1,
+		"linear_io": [[720, 3]],
+		"activ": false,
+		"dropout": true
+	}
+}
+

@@ -1,0 +1,62 @@
+{
+    "hhar_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 2,
+        "activity_label_size": 6,
+        "activity_label": [
+            "bike", "sit", "downstairs", "upstairs", "stand", "walk"
+        ],
+        "user_label_index": 0,
+        "user_label_size": 9,
+        "model_label_index": 1,
+        "model_label_size": 3,
+        "size": 9166
+    },
+    "motion_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 6,
+        "activity_label": [
+            "downstairs", "upstairs", "sitting", "standing", "walking", "jogging"
+        ],
+        "user_label_index": 1,
+        "user_label_size": 24,
+        "size": 4534
+    },
+    "uci_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 6,
+        "activity_label": [
+            "walking", "upstairs", "downstairs", "sitting", "standing", "lying"
+        ],
+        "user_label_index": 1,
+        "user_label_size": 30,
+        "size": 2088
+    },
+    "shoaib_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 9,
+        "activity_label_index": 0,
+        "activity_label_size": 7,
+        "activity_label": [
+            "walking", "sitting", "standing", "jogging", "biking", "upstairs" , "downstairs"
+        ],
+        "position_label_index": 1,
+        "position_label_size": 5,
+        "position_label": [
+            "left_pocket", "right_pocket", "wrist", "upper_arm", "belt"
+        ],
+        "user_label_index": 2,
+        "user_label_size": 10,
+        "size": 10500
+    }
+}
+
