@@ -5,7 +5,7 @@
 # @Email   : 735820057@qq.com
 # @File    : train.py
 # @Description :
-
+import copy
 import os
 import time
 
@@ -35,6 +35,8 @@ class Trainer(object):
 
         global_step = 0 # global iteration steps regardless of epochs
         best_loss = 1e6
+        model_best = model.state_dict()
+
         for e in range(self.cfg.n_epochs):
             loss_sum = 0. # the sum of iteration losses to get average loss in every epoch
             time_sum = 0.0
@@ -52,8 +54,8 @@ class Trainer(object):
                 global_step += 1
                 loss_sum += loss.item()
 
-                if global_step % self.cfg.save_steps == 0: # save
-                    self.save(global_step)
+                # if global_step % self.cfg.save_steps == 0: # save
+                #     self.save(global_step)
 
                 if self.cfg.total_steps and self.cfg.total_steps < global_step:
                     print('The Total Steps have been reached.')
@@ -66,7 +68,9 @@ class Trainer(object):
             # print("Train execution time: %.5f seconds" % (time_sum / len(self.data_loader)))
             if loss_eva < best_loss:
                 best_loss = loss_eva
+                model_best = copy.deepcopy(model.state_dict())
                 self.save(0)
+        model.load_state_dict(model_best)
         print('The Total Epoch have been reached.')
         # self.save(global_step)
 
@@ -107,7 +111,7 @@ class Trainer(object):
         global_step = 0 # global iteration steps regardless of epochs
         vali_acc_best = 0.0
         best_stat = None
-
+        model_best = model.state_dict()
         for e in range(self.cfg.n_epochs):
             loss_sum = 0.0 # the sum of iteration losses to get average loss in every epoch
             time_sum = 0.0
@@ -138,7 +142,9 @@ class Trainer(object):
             if vali_acc > vali_acc_best:
                 vali_acc_best = vali_acc
                 best_stat = (train_acc, vali_acc, test_acc, train_f1, vali_f1, test_f1)
+                model_best = copy.deepcopy(model.state_dict())
                 self.save(0)
+        self.model.load_state_dict(model_best)
         print('The Total Epoch have been reached.')
         print('Best Accuracy: %0.3f/%0.3f/%0.3f, F1: %0.3f/%0.3f/%0.3f' % best_stat)
 
