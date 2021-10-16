@@ -161,7 +161,7 @@ class LIMUBertModel4Pretrain(nn.Module):
 
     def __init__(self, cfg, output_embed=False):
         super().__init__()
-        self.transformer = Transformer(cfg)
+        self.transformer = Transformer(cfg) # encoder
         self.fc = nn.Linear(cfg.hidden, cfg.hidden)
         self.linear = nn.Linear(cfg.hidden, cfg.hidden)
         self.activ = gelu
@@ -209,9 +209,8 @@ class ClassifierLSTM(nn.Module):
             lstm = self.__getattr__('lstm' + str(i))
             bn = self.__getattr__('bn' + str(i))
             h, _ = lstm(h)
-            # if self.activ:
-            #     h = F.relu(h)
-            # h = bn(h)
+            if self.activ:
+                h = F.relu(h)
         h = h[:, -1, :]
         if self.dropout:
             h = F.dropout(h, training=training)
