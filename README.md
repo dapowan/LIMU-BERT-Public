@@ -140,7 +140,15 @@ In the main function of [`benchmark.py`](./benchmark.py), the parameters are sam
 
 
 ## Citation
-LIMU-BERT: Unleashing the Potential of Unlabeled Data for IMU Sensing Applications
+'''
+@inproceedings{xu2021limu,
+  title={LIMU-BERT: Unleashing the Potential of Unlabeled Data for IMU Sensing Applications},
+  author={Xu, Huatao and Zhou, Pengfei and Tan, Rui and Li, Mo and Shen, Guobin},
+  booktitle={Proceedings of the 19th ACM Conference on Embedded Networked Sensor Systems},
+  pages={220--233},
+  year={2021}
+}
+'''
 
 ## Reference
 The implementation of BERT part refers the codes of [ALBERT](https://github.com/dhlee347/pytorchic-bert).
