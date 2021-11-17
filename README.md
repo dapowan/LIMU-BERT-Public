@@ -50,7 +50,7 @@ In implementation, there are three steps to run the codes:
 - [`embedding.py`](./embedding.py) : generates and save representations learned by LIMU-BERT.
 - [`classifier.py`](./classifier.py) : load representations and train a task-specific classifier.
 
-For other baseline models, directly run [`benchmark.py`](./benchmark.py) or [`tpn.py`](./tpn.py).
+For other baseline models, directly run [`benchmark.py`](./benchmark.py).
 ## Usage
 [`pretrain.py`](./pretrain.py), [`embedding.py`](./embedding.py), [`classifier.py`](./classifier.py), 
 [`benchmark.py`](./benchmark.py), and [`classifier_bert.py`](./classifier_bert.py) share the same usage pattern.
