@@ -140,6 +140,7 @@ In the main function of [`benchmark.py`](./benchmark.py), the parameters are sam
 
 
 ## Citation
+[LIMU-BERT: Unleashing the Potential of Unlabeled Data for IMU Sensing Applications](https://dl.acm.org/doi/10.1145/3485730.3485937)
 ```
 @inproceedings{xu2021limu,
   title={LIMU-BERT: Unleashing the Potential of Unlabeled Data for IMU Sensing Applications},
