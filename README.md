@@ -1,8 +1,9 @@
 # LIMU-BERT
 LIMU-BERT, a novel representation learning model that can make use of unlabeled IMU data and extract generalized rather than task-specific features. 
-LIMU-BERT adopts the principle of self-supervised training of the natural language model BERT to effectively capture temporal relations and feature distributions in IMU sensor data. With the representations learned via LIMU-BERT, task-specific models trained with limited labeled samples can achieve superior performances. The designed models are lightweight and easily deployable on mobile devices. 
+LIMU-BERT adopts the principle of natural language model BERT to effectively capture temporal relations and feature distributions in IMU sensor data. With the representations learned via LIMU-BERT, task-specific models trained with limited labeled samples can achieve superior performances. 
+The designed models are lightweight and easily deployable on mobile devices. 
 
-Please check our paper for more details.
+Please check our paper [LIMU-BERT](https://dl.acm.org/doi/10.1145/3485730.3485937) for more details.
 ## File Overview
 This project contains following folders and files.
 - [`config`](./config) : config json files of models and training hyper-parameters.
@@ -150,9 +151,6 @@ In the main function of [`benchmark.py`](./benchmark.py), the parameters are sam
   year={2021}
 }
 ```
-
-## Reference
-The implementation of BERT part refers the codes of [ALBERT](https://github.com/dhlee347/pytorchic-bert).
 
 ## Contact
 huatao001@e.ntu.edu.sg (preferred)

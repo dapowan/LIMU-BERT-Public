@@ -387,21 +387,6 @@ class LIBERTDataset4Pretrain(Dataset):
         return len(self.data)
 
 
-class LIBERTDataset4Reconstruction(Dataset):
-    """ Load sentence pair (sequential or random order) from corpus """
-    def __init__(self, data, mask_data):
-        super().__init__()
-        self.data = data
-        self.mask_data = mask_data
-        self.seq_len = data.shape[1]
-
-    def __getitem__(self, index):
-        return torch.from_numpy(self.mask_data[index]), torch.arange(self.seq_len).long(), torch.from_numpy(self.data[index])
-
-    def __len__(self):
-        return len(self.data)
-
-
 def handle_argv(target, config_train, prefix):
     parser = argparse.ArgumentParser(description='PyTorch LIMU-BERT Model')
     parser.add_argument('model_version', type=str, help='Model config')
@@ -498,6 +483,7 @@ def load_bert_classifier_data_config(args):
     data = np.load(args.data_path).astype(np.float32)
     labels = np.load(args.label_path).astype(np.float32)
     return data, labels, train_cfg, model_bert_cfg, model_classifier_cfg, dataset_cfg
+
 
 def count_model_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
