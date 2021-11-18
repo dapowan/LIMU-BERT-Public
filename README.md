@@ -36,7 +36,7 @@ In the [`dataset`](./dataset) folder, we provide four scripts that preprocess th
 
 Each script has a kernel function which transform the raw IMU data and output preprocessed data and label. You can set the sampling rate and window size (sequence length).
 - Data: a numpy array with the shape of (N\*W\*F), N is the number of samples, W is the windows size, and F is the number of features (6 or 9).
-- Label: a numpy array with the shape of (N\*W\*L), N is the number of samples, W is the windows size, and L is the number of label types (e.g., activity and user label). The detailed label information is provied in [`data_config.json`](./dataset/data_config.json).
+- Label: a numpy array with the shape of (N\*W\*L), N is the number of samples, W is the windows size, and L is the number of label types (e.g., activity and user label). The detailed label information is provided in [`data_config.json`](./dataset/data_config.json).
 
 The two numpy arrays are saved as "data_X_Y.npy" and "label_X_Y.npy" in each dataset folder, where X represents the sampling rate and Y is the window size. 
 For example, all data and label are saved as "data_20_120.npy" and "label_20_120.npy" in our experiments and the data and label arrays of HHAR dataset are saved in the _dataset/hhar_ folder.
@@ -137,7 +137,7 @@ benchmark.py v1 uci 20_120 -s dcnn_v1 -l 0
 For this command, we will train a DCNN model, whose settings are defined in the _dcnn_v1_ of [`classifier.json`](./config/classifier.json). 
 The trained DCNN classifier will saved as "dcnn_v1.pt" in the _saved/bench_dcnn_uci_20_120_ folder.
 
-In the main function of [`benchmark.py`](./benchmark.py), the parameters are same to those in [`classifier.py`](./classifier.py).
+In the main function of [`benchmark.py`](./benchmark.py), the parameters are the same to those in [`classifier.py`](./classifier.py).
 
 
 ## Citation
