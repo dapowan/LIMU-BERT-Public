@@ -40,8 +40,6 @@ class Embeddings(nn.Module):
 
     def __init__(self, cfg, pos_embed=None):
         super().__init__()
-        # Original BERT Embedding
-        # self.tok_embed = nn.Embedding(cfg.vocab_size, cfg.hidden) # token embedding
 
         # factorized embedding
         self.lin = nn.Linear(cfg.feature_num, cfg.hidden)
