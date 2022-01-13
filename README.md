@@ -21,7 +21,7 @@ This project contains following folders and files.
 - [`utils.py`](./utils.py) : some helper functions for preprocessing data or separating dataset.
 
 ## News
-We upload the preprocessed data under the _dataset_ folder. You can now run our script directly.
+We upload the four preprocessed datasets under the _dataset_ folder. You can now run our script directly.
 
 ## Setup
 This repository has be tested for Python 3.7.7/3.8.5 and Pytorch 1.5.1/1.7.1. To install all dependencies, use the following command:
