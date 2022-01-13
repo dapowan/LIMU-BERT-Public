@@ -129,10 +129,10 @@ def create_io_config(args, dataset_name, version, pretrain_model=None, target='p
         os.mkdir(save_path)
     args.save_path = os.path.join(save_path, args.save_model)
 
-    log_path = os.path.join('log', target + "_" + dataset_name + "_" + version)  # + "_temp"
-    if not os.path.exists(log_path):
-        os.mkdir(log_path)
-    args.log_dir = log_path
+    # log_path = os.path.join('log', target + "_" + dataset_name + "_" + version)  # + "_temp"
+    # if not os.path.exists(log_path):
+    #     os.mkdir(log_path)
+    # args.log_dir = log_path
 
     if pretrain_model is not None:
         if target.count('_') > 2: # bert_classifier

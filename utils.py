@@ -403,21 +403,22 @@ def handle_argv(target, config_train, prefix):
                         help='The saved model name')
     try:
         args = parser.parse_args()
-        model_cfg = load_model_config(target, prefix, args.model_version)
-        if model_cfg is None:
-            print("Unable to find corresponding model config!")
-            sys.exit()
-        args.model_cfg = model_cfg
-        dataset_cfg = load_dataset_stats(args.dataset, args.dataset_version)
-        if dataset_cfg is None:
-            print("Unable to find corresponding dataset config!")
-            sys.exit()
-        args.dataset_cfg = dataset_cfg
-        args = create_io_config(args, args.dataset, args.dataset_version, pretrain_model=args.model_file, target=target)
-        return args
     except:
         parser.print_help()
         sys.exit(0)
+    model_cfg = load_model_config(target, prefix, args.model_version)
+    if model_cfg is None:
+        print("Unable to find corresponding model config!")
+        sys.exit()
+    args.model_cfg = model_cfg
+    dataset_cfg = load_dataset_stats(args.dataset, args.dataset_version)
+    if dataset_cfg is None:
+        print("Unable to find corresponding dataset config!")
+        sys.exit()
+    args.dataset_cfg = dataset_cfg
+    args = create_io_config(args, args.dataset, args.dataset_version, pretrain_model=args.model_file, target=target)
+    return args
+
 
 
 def handle_argv_simple():
