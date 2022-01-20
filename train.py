@@ -74,10 +74,10 @@ class Trainer(object):
         print('The Total Epoch have been reached.')
         # self.save(global_step)
 
-    def run(self, func_forward, func_evaluate, data_loader, model_file=None, data_parallel=False):
+    def run(self, func_forward, func_evaluate, data_loader, model_file=None, data_parallel=False, load_self=False):
         """ Evaluation Loop """
         self.model.eval() # evaluation mode
-        self.load(model_file)
+        self.load(model_file, load_self=load_self)
         # print(count_model_parameters(self.model))
         model = self.model.to(self.device)
         if data_parallel: # use Data Parallelism with Multi-GPU
@@ -157,7 +157,7 @@ class Trainer(object):
             else:
                 self.model.load_state_dict(torch.load(model_file + '.pt', map_location=self.device))
 
-    def save(self, i):
+    def save(self, i=0):
         """ save current model """
         if i != 0:
             torch.save(self.model.state_dict(), self.save_path + "_" + str(i) + '.pt')

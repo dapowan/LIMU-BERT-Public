@@ -34,7 +34,7 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
         = fetch_setup(args, output_embed)
 
     optimizer = None
-    trainer = train.Trainer(train_cfg, model, optimizer, None, get_device(args.gpu))
+    trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, get_device(args.gpu))
 
     def func_forward(model, batch):
         mask_seqs, seqs = batch
@@ -42,6 +42,7 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
         return seq_recon, seqs
 
     output = trainer.run(func_forward, None, data_loader, args.pretrain_model)
+    # trainer.save()
     if save:
         save_name = 'embed_' + args.model_file.split('.')[0] + '_' + args.dataset + '_' + args.dataset_version
         np.save(os.path.join('embed', save_name + '.npy'), output)
