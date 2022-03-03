@@ -25,9 +25,45 @@ This project contains following folders and files.
 
 [13/01/2022] We upload the four preprocessed datasets under the _dataset_ folder. You can now run our scripts directly.
 
-## Setup
-This repository has be tested for Python 3.7.7/3.8.5 and Pytorch 1.5.1/1.7.1. To install all dependencies, use the following command:
+[03/03/2022] We provide a docker image to run our scripts directly without manually setting up the environment.
 
+## Git Clone
+Assume that we use ```~/Repos``` as the working directory. Git clone this repo:
+```
+$ cd ~/Repos
+$ git clone https://github.com/dapowan/LIMU-BERT-Public
+```
+
+## Setup
+### Option1: Docker Image
+In this option, we can use the image which has installed the required environments for the usage of this repo directly. Once we successfully start a container on this image, we can skip Option2.
+
+Pull the image from [this docker hub link](https://hub.docker.com/repository/docker/bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04) by:
+```
+$ docker pull bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04:latest
+```
+Check image ID:
+```
+$ docker image ls
+```
+which displays
+```
+REPOSITORY                                               TAG       IMAGE ID       CREATED       SIZE
+bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04   latest    <IMAGE_ID>   6 days ago    8.35GB
+```
+Docker run a containe with ```<IMAGE_ID>```:
+```
+$ docker run --ipc=host --shm-size=16384m -it -v ~/:/share --gpus all --network=bridge <IMAGE_ID> /bin/bash
+```
+
+Locate to the folder in the container
+```
+$ cd share/Repos/LIMU-BERT-Public/
+```
+At this point you are ready to run the code directly and skip Option2.
+
+### Option2: pip
+This repository has be tested for Python 3.7.7/3.8.5 and Pytorch 1.5.1/1.7.1. To install all dependencies, use the following command:
 ```
 $ pip install -r requirements.txt
 ```
@@ -88,7 +124,7 @@ optional arguments:
 ### [`pretrain.py`](./pretrain.py)
 Example:
 ```
-pretrain.py v1 uci 20_120 -s limu_v1 
+python pretrain.py v1 uci 20_120 -s limu_v1 
 ```
 For this command, we will train a LIMU-BERT, whose settings are defined in the _based_v1_ of [`limu_bert.json`](./config/limu_bert.json),
 with the UCI dataset "data_20_120.npy" and "label_20_120.npy". The trained model will be saved as "limu_v1.pt" in the _saved/pretrain_base_uci_20_120_ folder.
@@ -99,7 +135,7 @@ In the main function of [`pretrain.py`](./pretrain.py), you can set following pa
 ### [`embedding.py`](./embedding.py)
 Example:
 ```
-embedding.py v1 uci 20_120 -f limu_v1
+python embedding.py v1 uci 20_120 -f limu_v1
 ```
 For this command, we will load the pretrained LIMU-BERT from file "limu_v1.pt" in the _saved/pretrain_base_uci_20_120_ folder.
 And embedding.py will save the learned representations as "embed_limu_v1_uci_20_120.npy" in the _embed_ folder.
@@ -107,7 +143,7 @@ And embedding.py will save the learned representations as "embed_limu_v1_uci_20_
 ### [`classifier.py`](./classifier.py)
 Example:
 ```
-classifier.py v2 uci 20_120 -f limu_v1 -s limu_gru_v1 -l 0
+python classifier.py v2 uci 20_120 -f limu_v1 -s limu_gru_v1 -l 0
 ```
 For this command, we will load the embeddings or representations from "embed_limu_v1_uci_20_120.npy" and train the GRU classifier
 , whose settings are defined in the _gru_v2_ of [`classifier.json`](./config/classifier.json). 
@@ -126,7 +162,7 @@ If you are confused about the above settings, please check the Section 4.1.1 in 
 ### [`classifier_bert.py`](./classifier_bert.py)
 Example:
 ```
-classifier_bert.py v1_v2 uci 20_120 -f limu_v1 -s limu_gru_v1 -l 0
+python classifier_bert.py v1_v2 uci 20_120 -f limu_v1 -s limu_gru_v1 -l 0
 ```
 For this command, we will train the a composite classifier with the pretrained LIMU-BERT and GRU classifier
 , whose settings are defined in the _gru_v2_ of [`classifier.json`](./config/classifier.json). 
@@ -137,7 +173,7 @@ Note that "v1_v2" defines two model versions, which corresponds to the LIMU-BERT
 ### [`benchmark.py`](./benchmark.py)
 Example:
 ```
-benchmark.py v1 uci 20_120 -s dcnn_v1 -l 0
+python benchmark.py v1 uci 20_120 -s dcnn_v1 -l 0
 ```
 For this command, we will train a DCNN model, whose settings are defined in the _dcnn_v1_ of [`classifier.json`](./config/classifier.json). 
 The trained DCNN classifier will be saved as "dcnn_v1.pt" in the _saved/bench_dcnn_uci_20_120_ folder.
