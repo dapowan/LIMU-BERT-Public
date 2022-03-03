@@ -60,7 +60,7 @@ $ docker run --ipc=host --shm-size=16384m -it -v ~/:/share --gpus all --network=
 
 Locate to the folder in the container
 ```
-$ cd share/Repos/LIMU-BERT-Public/
+$ cd /share/Repos/LIMU-BERT-Public
 ```
 At this point you are ready to run the code directly and skip Option2.
 
