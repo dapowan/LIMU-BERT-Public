@@ -21,6 +21,8 @@ This project contains following folders and files.
 - [`utils.py`](./utils.py) : some helper functions for preprocessing data or separating dataset.
 
 ## News
+[03/03/2022] We build a docker image with the environment to run the code directly. Many thanks to [BryanBo-Cao](https://github.com/BryanBo-Cao).
+
 [20/01/2022] We upload trained models (i.e., LIMU-BERT and LIMU-GRU) under the _saved_ folder.
 
 [13/01/2022] We upload the four preprocessed datasets under the _dataset_ folder. You can now run our scripts directly.
