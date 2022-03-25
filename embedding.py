@@ -4,7 +4,7 @@
 # @Author  : Huatao
 # @Email   : 735820057@qq.com
 # @File    : embedding.py
-# @Description : check the output and embedding of pretrained model
+# @Description : generate embeddings using pretrained LIMU-BERT models
 import os
 
 import numpy as np
