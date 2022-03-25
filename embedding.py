@@ -37,9 +37,9 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, get_device(args.gpu))
 
     def func_forward(model, batch):
-        mask_seqs, seqs = batch
-        seq_recon = model(mask_seqs)
-        return seq_recon, seqs
+        seqs, label = batch
+        embed = model(seqs)
+        return embed, label
 
     output = trainer.run(func_forward, None, data_loader, args.pretrain_model)
     # trainer.save()
