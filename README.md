@@ -40,9 +40,9 @@ $ git clone https://github.com/dapowan/LIMU-BERT-Public
 ### Option1: Docker Image
 In this option, we can use the image which has installed the required environments for the usage of this repo directly. Once we successfully start a container on this image, we can skip Option2.
 
-Pull the image from [this docker hub link](https://hub.docker.com/repository/docker/bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04) by:
+Pull the image from [this docker hub link](https://hub.docker.com/r/bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04-cv2-torchvision) by:
 ```
-$ docker pull bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04:latest
+$ docker pull bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04-cv2-torchvision
 ```
 Check image ID:
 ```
@@ -50,8 +50,8 @@ $ docker image ls
 ```
 which displays
 ```
-REPOSITORY                                               TAG       IMAGE ID       CREATED       SIZE
-bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04   latest    <IMAGE_ID>   6 days ago    8.35GB
+REPOSITORY                                                               TAG         IMAGE ID       CREATED          SIZE
+bryanbocao/limu-bert-env_10.2-cudnn8-devel-ubuntu18.04-cv2-torchvision   latest      <IMAGE_ID>   10 minutes ago   11.8GB
 ```
 Docker run a containe with ```<IMAGE_ID>```:
 ```
