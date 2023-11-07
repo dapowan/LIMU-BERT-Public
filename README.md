@@ -22,6 +22,8 @@ This project contains following folders and files.
 - [`utils.py`](./utils.py) : some helper functions for preprocessing data or separating dataset.
 
 ## News
+[02/10/2023] Our latest work [UniHAR](https://dapowan.github.io/wands_unihar/) is accepted to MobiCom 2023, which is an universal human activity recognition built upon LIMU-BERT.
+
 [03/03/2022] We build a docker image with the environment to run the code directly. Many thanks to [BryanBo-Cao](https://github.com/BryanBo-Cao).
 
 [20/01/2022] We upload trained models (i.e., LIMU-BERT and LIMU-GRU) under the _saved_ folder.
@@ -74,7 +76,7 @@ $ pip install -r requirements.txt
 ## Dataset
 In the [`dataset`](./dataset) folder, we provide four scripts that preprocess the corresponding datasets. Those datasets are widely utilized in the previous studies:
 - [HHAR](http://archive.ics.uci.edu/ml/datasets/heterogeneity+activity+recognition)
-- [UCI](http://archive.ics.uci.edu/ml/datasets/Smartphone-Based+Recognition+of+Human+Activities+and+Postural+Transitions)
+- [UCI]([http://archive.ics.uci.edu/ml/datasets/Smartphone-Based+Recognition+of+Human+Activities+and+Postural+Transitions](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions))
 - [MotionSense](https://github.com/mmalekzadeh/motion-sense)
 - [Shoaib](https://www.utwente.nl/en/eemcs/ps/research/dataset/)
 
