@@ -76,7 +76,7 @@ $ pip install -r requirements.txt
 ## Dataset
 In the [`dataset`](./dataset) folder, we provide four scripts that preprocess the corresponding datasets. Those datasets are widely utilized in the previous studies:
 - [HHAR](http://archive.ics.uci.edu/ml/datasets/heterogeneity+activity+recognition)
-- [UCI]([http://archive.ics.uci.edu/ml/datasets/Smartphone-Based+Recognition+of+Human+Activities+and+Postural+Transitions](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions))
+- [UCI](https://archive.ics.uci.edu/dataset/341/smartphone+based+recognition+of+human+activities+and+postural+transitions)
 - [MotionSense](https://github.com/mmalekzadeh/motion-sense)
 - [Shoaib](https://www.utwente.nl/en/eemcs/ps/research/dataset/)
 
