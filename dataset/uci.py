@@ -73,6 +73,8 @@ def preprocess(path, path_save, version, raw_sr=50, target_sr=20, seq_len=20):
     label[:, :, 0] = label[:, :, 0] - np.min(label[:, :, 0])
     label[:, :, 1] = label[:, :, 1] - np.min(label[:, :, 1])
     print('All data processed. Size: %d' % (data.shape[0]))
+
+    
     np.save(os.path.join(path_save, 'data_' + version + '.npy'), np.array(data))
     np.save(os.path.join(path_save, 'label_' + version + '.npy'), np.array(label))
     return data, label
