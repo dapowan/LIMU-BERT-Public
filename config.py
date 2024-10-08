@@ -178,6 +178,8 @@ def load_dataset_stats(dataset, version):
     path = 'dataset/data_config.json'
     dataset_config_all = json.load(open(path, "r"))
     name = dataset + "_" + version
+    print("name is ", name)
+    print("dataset_config_all is ", dataset_config_all)
     if name in dataset_config_all:
         return DatasetConfig.from_json(dataset_config_all[name])
     else:

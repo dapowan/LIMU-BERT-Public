@@ -1,7 +1,7 @@
 {
-    "hhar_20_120": {
+    "hhar_20_40": {
         "sr": 20,
-        "seq_len": 120,
+        "seq_len": 40,
         "dimension": 6,
         "activity_label_index": 2,
         "activity_label_size": 6,

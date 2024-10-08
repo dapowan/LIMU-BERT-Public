@@ -54,7 +54,7 @@ def preprocess(path, path_save, version, raw_sr=50, target_sr=20, seq_len=20):
                         print("new shape", df.shape)
                         print("-------------------")
                         data.append(df)
-                        label = np.array([[user_idx, int(gesture_idx)]])
+                        label = np.array([[int(gesture_idx), user_idx]])
                         label = np.tile(label, (seq_len, 1))
                         labels.append(label)
                     except:
