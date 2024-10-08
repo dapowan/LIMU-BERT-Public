@@ -1,7 +1,7 @@
 {
-    "hhar_20_40": {
+    "hhar_20_120": {
         "sr": 20,
-        "seq_len": 40,
+        "seq_len": 120,
         "dimension": 6,
         "activity_label_index": 2,
         "activity_label_size": 6,
@@ -40,6 +40,61 @@
         "user_label_size": 30,
         "size": 2088
     },
+
+    "blind_user_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 15,
+        "activity_label": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"],
+        "user_label_index": 1,
+        "user_label_size": 10,
+        "size": 1439
+    },
+
+
+    "sighted_user_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 15,
+        "activity_label": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"],
+        "user_label_index": 1,
+        "user_label_size": 8,
+        "size": 219
+    },
+
+
+    "smart_watch_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 1,
+        "activity_label_size": 5,
+        "activity_label": ["1", "2", "3", "4", "5"],
+        "user_label_index": 0,
+        "user_label_size": 23,
+        "size": 1538
+    },
+
+
+
+    "words_50_100": {
+        "sr": 50,
+        "seq_len": 100,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 23,
+        "activity_label": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
+        "user_label_index": 1,
+        "user_label_size": 10,
+        "size": 2777
+    },
+
+
+
     "shoaib_20_120": {
         "sr": 20,
         "seq_len": 120,
