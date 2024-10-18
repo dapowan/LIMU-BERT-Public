@@ -75,6 +75,7 @@ if __name__ == "__main__":
     method = "gru"
     args = handle_argv('classifier_' + mode + "_" + method, 'train.json', method)
     embedding, labels = load_embedding_label(args.model_file, args.dataset, args.dataset_version)
+    print("size of embedding: ", embedding.shape)
     label_test, label_estimate_test = classify_embeddings(args, embedding, labels, args.label_index,
                                                           training_rate, label_rate, balance=balance, method=method)
 

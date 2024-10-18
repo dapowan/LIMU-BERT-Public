@@ -93,7 +93,7 @@ def plot_embedding(embeddings, labels, label_index=0, reduce=1000, label_names=N
         plot_tsne(embeddings[index_rand, :], label_composite[index_rand])
         return None
     else:
-        data_tsne = plot_tsne(embeddings[index_rand, :], labels[index_rand, 0, label_index], label_names=label_names)
+        data_tsne = plot_tsne(embeddings[index_rand, :], labels[index_rand, 0, label_index], label_names=None)
         return data_tsne, labels[index_rand, 0, label_index]
         # plot_pca(embeddings[index_rand, :], labels[index_rand, label_index])
 

@@ -63,6 +63,6 @@ if __name__ == "__main__":
     args = handle_argv('pretrain_' + mode, 'pretrain.json', mode)
     data, output, labels = generate_embedding_or_output(args=args, output_embed=True, save=save)
 
-    # label_index = 1
-    # label_names, label_num = load_dataset_label_names(args.dataset_cfg, label_index)
-    # data_tsne, labels_tsne = plot_embedding(output, labels, label_index=label_index, reduce=1000, label_names=label_names)
+    label_index = 0  #put activity_label_index from data_config.json here
+    label_names, label_num = load_dataset_label_names(args.dataset_cfg, label_index)
+    data_tsne, labels_tsne = plot_embedding(output, labels, label_index=label_index, reduce=1000, label_names=label_names)
