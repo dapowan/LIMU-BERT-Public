@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 from torch import nn
+import torch
 from torch.utils.data import DataLoader
 from features import detect_nucleus, compute_energy
 
@@ -29,20 +30,27 @@ def fetch_setup(args, output_embed):
     criterion = nn.MSELoss(reduction='none')
     return data, labels, data_loader, model, criterion, train_cfg
 
-def generate_nucleus_mask(seq_len, nucleus_points):
+def generate_nucleus_mask(seq_len, batch_nucleus_points):
     """
-    Generate a binary mask for the nucleus.
+    Generate a binary mask for the nucleus for each sequence in the batch.
 
     Args:
-        seq_len: Length of the sequence
-        nucleus_points: List of start and end points of the nucleus
+        seq_len: Length of each sequence
+        batch_nucleus_points: List of lists, where each inner list contains start and end points for the nucleus of a sequence
 
     Returns:
-        A binary mask where 1 indicates the nucleus region.
+        A binary mask tensor with shape (batch_size, seq_len), where 1 indicates the nucleus region.
     """
-    nucleus_mask = nn.zeros((seq_len,), dtype=nn.long)
-    nucleus_mask[nucleus_points[0]:nucleus_points[1]] = 1
-    return nucleus_mask.unsqueeze(0).expand(seq_len, -1)
+    batch_size = len(batch_nucleus_points)
+    nucleus_mask = torch.zeros((batch_size, seq_len), dtype=torch.long)
+
+    for i, nucleus_points in enumerate(batch_nucleus_points):
+        if len(nucleus_points) == 2:
+            start, end = nucleus_points
+            nucleus_mask[i, start:end] = 1  # Mark nucleus region with 1
+
+    return nucleus_mask
+
 
 from features import detect_nucleus, compute_energy  # Import both nucleus detection and energy computation
 
@@ -55,16 +63,16 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
     def func_forward(model, batch):
         seqs, label = batch
 
-        # Compute the energy for the input sequences
+        # Compute the energy for each sequence in the batch
         energy = compute_energy(seqs)
 
-        # Apply nucleus detection based on the energy signal
-        nucleus_points = detect_nucleus(energy)
-        
-        # Generate the nucleus mask for each sequence
-        nucleus_mask = generate_nucleus_mask(seqs.size(1), nucleus_points)
+        # Detect nucleus points for each sequence in the batch
+        batch_nucleus_points = detect_nucleus(energy)
 
-        # Pass the sequences and nucleus mask into the model
+        # Generate the batched nucleus mask
+        nucleus_mask = generate_nucleus_mask(seqs.size(1), batch_nucleus_points)
+
+        # Pass sequences and batched nucleus mask to the model
         embed = model(seqs, nucleus_mask=nucleus_mask)
         return embed, label
 
