@@ -30,15 +30,25 @@ def set_seeds(seed):
     torch.manual_seed(seed)
 
 
-def get_device(gpu):
-    "get device (CPU or GPU)"
-    if gpu is None:
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+import torch
+
+def get_device(gpu=None):
+    """
+    Get device (CPU or specified GPU).
+    Ensures consistent device placement across tensors.
+    """
+    # Set device based on GPU availability and user preference
+    if torch.cuda.is_available():
+        device = torch.device(f"cuda:{gpu}" if gpu is not None else "cuda:0")
     else:
-        device = torch.device("cuda:" + gpu if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu")
+
+    # Print the selected device and number of GPUs available
     n_gpu = torch.cuda.device_count()
-    print("%s (%d GPUs)" % (device, n_gpu))
+    print(f"Using device: {device} ({n_gpu} GPUs available)")
+
     return device
+
 
 
 def split_last(x, shape):

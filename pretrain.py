@@ -40,7 +40,7 @@ def main(args, training_rate):
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=train_cfg.lr)
     #device = get_device(args.gpu)
-    device = torch.device("mps")
+    device = torch.device("cuda")
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, device)
 
     def func_loss(model, batch):

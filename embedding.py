@@ -61,7 +61,10 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, get_device(args.gpu))
 
     def func_forward(model, batch):
+        
+        device = next(model.parameters()).device
         seqs, label = batch
+        seqs = seqs.to(device)
 
         # Compute the energy for each sequence in the batch
         energy = compute_energy(seqs)

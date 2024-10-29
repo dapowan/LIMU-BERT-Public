@@ -57,8 +57,9 @@ class Embeddings(nn.Module):
         self.emb_norm = cfg.emb_norm
 
     def forward(self, x, nucleus_mask=None):
+        device = x.device  # Ensure device consistency
         seq_len = x.size(1)
-        pos = torch.arange(seq_len, dtype=torch.long, device=x.device)
+        pos = torch.arange(seq_len, dtype=torch.long, device=device)
         pos = pos.unsqueeze(0).expand(x.size(0), seq_len) # (S,) -> (B, S)
 
         # factorized embedding
@@ -68,7 +69,9 @@ class Embeddings(nn.Module):
         e = e + self.pos_embed(pos)
 
         if nucleus_mask is not None:
+            nucleus_mask = nucleus_mask.to(x.device)  # Move nucleus_mask to same device as x
             nucleus_embed = self.nucleus_embed(nucleus_mask)
+            
             e = e + nucleus_embed
         return self.norm(e)
 
