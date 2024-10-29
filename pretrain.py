@@ -65,7 +65,6 @@ def main(args, training_rate):
     else:
         trainer.pretrain(func_loss, func_forward, func_evaluate, data_loader_train, data_loader_test, model_file=None)
 
-
 if __name__ == "__main__":
     mode = "base"
     args = handle_argv('pretrain_' + mode, 'pretrain.json', mode)

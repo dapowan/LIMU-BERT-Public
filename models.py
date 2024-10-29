@@ -38,7 +38,7 @@ class LayerNorm(nn.Module):
 
 class Embeddings(nn.Module):
 
-    def __init__(self, cfg, pos_embed=None):
+    def __init__(self, cfg, pos_embed=None, nucleus_embed=None):
         super().__init__()
 
         # factorized embedding
@@ -48,10 +48,15 @@ class Embeddings(nn.Module):
         else:
             self.pos_embed = pos_embed
 
+        if nucleus_embed is None:
+            self.nucleus_embed = nn.Embedding(2, cfg.hidden)  # Binary embedding for nucleus mask
+        else:
+            self.nucleus_embed = nucleus_embed
+
         self.norm = LayerNorm(cfg)
         self.emb_norm = cfg.emb_norm
 
-    def forward(self, x):
+    def forward(self, x, nucleus_mask=None):
         seq_len = x.size(1)
         pos = torch.arange(seq_len, dtype=torch.long, device=x.device)
         pos = pos.unsqueeze(0).expand(x.size(0), seq_len) # (S,) -> (B, S)
@@ -61,6 +66,10 @@ class Embeddings(nn.Module):
         if self.emb_norm:
             e = self.norm(e)
         e = e + self.pos_embed(pos)
+
+        if nucleus_mask is not None:
+            nucleus_embed = self.nucleus_embed(nucleus_mask)
+            e = e + nucleus_embed
         return self.norm(e)
 
 
@@ -144,8 +153,8 @@ class Transformer(nn.Module):
         self.norm2 = LayerNorm(cfg)
         # self.drop = nn.Dropout(cfg.p_drop_hidden)
 
-    def forward(self, x):
-        h = self.embed(x)
+    def forward(self, x, nucleus_mask=None):
+        h = self.embed(x, nucleus_mask=nucleus_mask)
 
         for _ in range(self.n_layers):
             # h = block(h, mask)
@@ -167,10 +176,13 @@ class LIMUBertModel4Pretrain(nn.Module):
         self.decoder = nn.Linear(cfg.hidden, cfg.feature_num)
         self.output_embed = output_embed
 
-    def forward(self, input_seqs, masked_pos=None):
-        h_masked = self.transformer(input_seqs)
+    def forward(self, input_seqs, masked_pos=None, nucleus_mask=None):
+        # Embed the input sequence
+        h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask)
+
         if self.output_embed:
             return h_masked
+
         if masked_pos is not None:
             masked_pos = masked_pos[:, :, None].expand(-1, -1, h_masked.size(-1))
             h_masked = torch.gather(h_masked, 1, masked_pos)

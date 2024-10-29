@@ -10,6 +10,7 @@ import os
 import numpy as np
 from torch import nn
 from torch.utils.data import DataLoader
+from features import detect_nucleus, compute_energy
 
 import train
 from config import load_dataset_label_names
@@ -28,24 +29,51 @@ def fetch_setup(args, output_embed):
     criterion = nn.MSELoss(reduction='none')
     return data, labels, data_loader, model, criterion, train_cfg
 
+def generate_nucleus_mask(seq_len, nucleus_points):
+    """
+    Generate a binary mask for the nucleus.
+
+    Args:
+        seq_len: Length of the sequence
+        nucleus_points: List of start and end points of the nucleus
+
+    Returns:
+        A binary mask where 1 indicates the nucleus region.
+    """
+    nucleus_mask = nn.zeros((seq_len,), dtype=nn.long)
+    nucleus_mask[nucleus_points[0]:nucleus_points[1]] = 1
+    return nucleus_mask.unsqueeze(0).expand(seq_len, -1)
+
+from features import detect_nucleus, compute_energy  # Import both nucleus detection and energy computation
 
 def generate_embedding_or_output(args, save=False, output_embed=True):
-    data, labels, data_loader, model, criterion, train_cfg \
-        = fetch_setup(args, output_embed)
+    data, labels, data_loader, model, criterion, train_cfg = fetch_setup(args, output_embed)
 
     optimizer = None
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, get_device(args.gpu))
 
     def func_forward(model, batch):
         seqs, label = batch
-        embed = model(seqs)
+
+        # Compute the energy for the input sequences
+        energy = compute_energy(seqs)
+
+        # Apply nucleus detection based on the energy signal
+        nucleus_points = detect_nucleus(energy)
+        
+        # Generate the nucleus mask for each sequence
+        nucleus_mask = generate_nucleus_mask(seqs.size(1), nucleus_points)
+
+        # Pass the sequences and nucleus mask into the model
+        embed = model(seqs, nucleus_mask=nucleus_mask)
         return embed, label
 
     output = trainer.run(func_forward, None, data_loader, args.pretrain_model)
-    # trainer.save()
+
     if save:
         save_name = 'embed_' + args.model_file.split('.')[0] + '_' + args.dataset + '_' + args.dataset_version
         np.save(os.path.join('embed', save_name + '.npy'), output)
+
     return data, output, labels
 
 
