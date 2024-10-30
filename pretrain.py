@@ -39,8 +39,8 @@ def main(args, training_rate):
     criterion = nn.MSELoss(reduction='none')
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=train_cfg.lr)
-    #device = get_device(args.gpu)
-    device = torch.device("cuda")
+    device = get_device(args.gpu)
+    #device = torch.device("mps")
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, device)
 
     def func_loss(model, batch):
