@@ -38,7 +38,7 @@ class LayerNorm(nn.Module):
 
 class Embeddings(nn.Module):
 
-    def __init__(self, cfg, pos_embed=None, nucleus_embed=None):
+    def __init__(self, cfg, pos_embed=None, nucleus_embed=None, sig_axis_embed=None):
         super().__init__()
 
         # factorized embedding
@@ -53,10 +53,16 @@ class Embeddings(nn.Module):
         else:
             self.nucleus_embed = nucleus_embed
 
+        # Significant axis mask embedding
+        if sig_axis_embed is None:
+            self.sig_axis_embed = nn.Embedding(2, cfg.hidden)
+        else:
+            self.sig_axis_embed = sig_axis_embed
+
         self.norm = LayerNorm(cfg)
         self.emb_norm = cfg.emb_norm
 
-    def forward(self, x, nucleus_mask=None):
+    def forward(self, x, nucleus_mask=None, sig_axis_mask=None):
         device = x.device  # Ensure device consistency
         seq_len = x.size(1)
         pos = torch.arange(seq_len, dtype=torch.long, device=device)
@@ -73,6 +79,13 @@ class Embeddings(nn.Module):
             nucleus_embed = self.nucleus_embed(nucleus_mask)
             
             e = e + nucleus_embed
+
+        # Add significant axis mask embedding if provided
+        if sig_axis_mask is not None:
+            sig_axis_mask = sig_axis_mask.to(x.device)
+            sig_axis_embed = self.sig_axis_embed(sig_axis_mask)
+            e = e + sig_axis_embed
+
         return self.norm(e)
 
 
@@ -105,7 +118,7 @@ class MultiHeadedSelfAttention(nn.Module):
         self.scores = None # for visualization
         self.n_heads = cfg.n_heads
 
-    def forward(self, x):
+    def forward(self, x, sig_axis_mask=None):
         """
         x, q(query), k(key), v(value) : (B(batch_size), S(seq_len), D(dim))
         * split D(dim) into (H(n_heads), W(width of head)) ; D = H * W
@@ -117,9 +130,15 @@ class MultiHeadedSelfAttention(nn.Module):
         # (B, H, S, W) @ (B, H, W, S) -> (B, H, S, S) -softmax-> (B, H, S, S)
         scores = q @ k.transpose(-2, -1) / np.sqrt(k.size(-1))
         #scores = self.drop(F.softmax(scores, dim=-1))
-        scores = F.softmax(scores, dim=-1)
+        #scores = F.softmax(scores, dim=-1)
+
+        if sig_axis_mask is not None:
+            scores = scores * sig_axis_mask[:, None, None, :]  # Broadcasting to match dimensions
+
+        attn_weights = F.softmax(scores, dim=-1)
+       
         # (B, H, S, S) @ (B, H, S, W) -> (B, H, S, W) -trans-> (B, S, H, W)
-        h = (scores @ v).transpose(1, 2).contiguous()
+        h = (attn_weights @ v).transpose(1, 2).contiguous()
         # -merge-> (B, S, D)
         h = merge_last(h, 2)
         self.scores = scores
@@ -156,12 +175,13 @@ class Transformer(nn.Module):
         self.norm2 = LayerNorm(cfg)
         # self.drop = nn.Dropout(cfg.p_drop_hidden)
 
-    def forward(self, x, nucleus_mask=None):
+    def forward(self, x, nucleus_mask=None, sig_axis_mask=None):
         h = self.embed(x, nucleus_mask=nucleus_mask)
 
         for _ in range(self.n_layers):
             # h = block(h, mask)
-            h = self.attn(h)
+            h = self.attn(h, sig_axis_mask=sig_axis_mask)  # Pass the significant axis mask
+            #h = self.attn(h)
             h = self.norm1(h + self.proj(h))
             h = self.norm2(h + self.pwff(h))
         return h
@@ -179,9 +199,9 @@ class LIMUBertModel4Pretrain(nn.Module):
         self.decoder = nn.Linear(cfg.hidden, cfg.feature_num)
         self.output_embed = output_embed
 
-    def forward(self, input_seqs, masked_pos=None, nucleus_mask=None):
+    def forward(self, input_seqs, masked_pos=None, nucleus_mask=None, sig_axis_mask=None):
         # Embed the input sequence
-        h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask)
+        h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask, sig_axis_mask=sig_axis_mask)
 
         if self.output_embed:
             return h_masked

@@ -65,3 +65,9 @@ def detect_nucleus(energy, window=20, nucleus_thres=0.4):
 
 # Example usage
 #filtered_change_pts = detect_nucleus(energy)
+
+def calculate_significant_axis(seqs):
+    # Calculate the axis with maximum rotational activity (x=0, y=1, z=2)
+    abs_rotations = torch.abs(seqs[:, :, 3:6])  # Assumes last three features are rotations
+    sig_axis = abs_rotations.mean(dim=1).argmax(dim=-1)  # Shape: (batch_size,)
+    return sig_axis

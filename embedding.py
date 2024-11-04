@@ -11,7 +11,7 @@ import numpy as np
 from torch import nn
 import torch
 from torch.utils.data import DataLoader
-from features import detect_nucleus, compute_energy
+from features import detect_nucleus, compute_energy, calculate_significant_axis
 
 import train
 from config import load_dataset_label_names
@@ -68,15 +68,17 @@ def generate_embedding_or_output(args, save=False, output_embed=True):
 
         # Compute the energy for each sequence in the batch
         energy = compute_energy(seqs)
-
         # Detect nucleus points for each sequence in the batch
         batch_nucleus_points = detect_nucleus(energy)
-
         # Generate the batched nucleus mask
         nucleus_mask = generate_nucleus_mask(seqs.size(1), batch_nucleus_points)
+        
+        # Calculate significant axis mask
+        sig_axis = calculate_significant_axis(seqs)
+        sig_axis_mask = (seqs.argmax(dim=-1) == sig_axis[:, None]).float()  # Shape: (batch_size, seq_len)
 
         # Pass sequences and batched nucleus mask to the model
-        embed = model(seqs, nucleus_mask=nucleus_mask)
+        embed = model(seqs, nucleus_mask=nucleus_mask, sig_axis_mask=sig_axis_mask)
         return embed, label
 
     output = trainer.run(func_forward, None, data_loader, args.pretrain_model)
