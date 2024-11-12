@@ -129,16 +129,15 @@ class MultiHeadedSelfAttention(nn.Module):
                    for x in [q, k, v])
         # (B, H, S, W) @ (B, H, W, S) -> (B, H, S, S) -softmax-> (B, H, S, S)
         scores = q @ k.transpose(-2, -1) / np.sqrt(k.size(-1))
-        #scores = self.drop(F.softmax(scores, dim=-1))
-        #scores = F.softmax(scores, dim=-1)
 
-        if sig_axis_mask is not None:
+        ## adding significant axis mask      
+        '''if sig_axis_mask is not None:
             scores = scores * sig_axis_mask[:, None, None, :]  # Broadcasting to match dimensions
+        '''
 
-        attn_weights = F.softmax(scores, dim=-1)
-       
+        scores = F.softmax(scores, dim=-1)
         # (B, H, S, S) @ (B, H, S, W) -> (B, H, S, W) -trans-> (B, S, H, W)
-        h = (attn_weights @ v).transpose(1, 2).contiguous()
+        h = (scores @ v).transpose(1, 2).contiguous()
         # -merge-> (B, S, D)
         h = merge_last(h, 2)
         self.scores = scores
@@ -179,9 +178,8 @@ class Transformer(nn.Module):
         h = self.embed(x, nucleus_mask=nucleus_mask)
 
         for _ in range(self.n_layers):
-            # h = block(h, mask)
-            h = self.attn(h, sig_axis_mask=sig_axis_mask)  # Pass the significant axis mask
-            #h = self.attn(h)
+            #h = self.attn(h, sig_axis_mask=sig_axis_mask)  # Pass the significant axis mask
+            h = self.attn(h)
             h = self.norm1(h + self.proj(h))
             h = self.norm2(h + self.pwff(h))
         return h

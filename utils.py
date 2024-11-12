@@ -40,6 +40,8 @@ def get_device(gpu=None):
     # Set device based on GPU availability and user preference
     if torch.cuda.is_available():
         device = torch.device(f"cuda:{gpu}" if gpu is not None else "cuda:0")
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
     else:
         device = torch.device("cpu")
 
