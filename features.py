@@ -14,7 +14,7 @@ def compute_energy(seqs):
     return energy
 
 
-def detect_nucleus(energy, window=20, nucleus_thres=0.4):
+def detect_nucleus(energy, window=20, nucleus_thres=8):
     """
     Detects the nucleus of gestures based on changes in signal energy.
 
