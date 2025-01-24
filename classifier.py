@@ -68,7 +68,8 @@ def classify_embeddings(args, data, labels, label_index, training_rate, label_ra
 if __name__ == "__main__":
 
     training_rate = 0.8 # unlabeled sample / total sample
-    label_rate = 0.01 # labeled sample / unlabeled sample
+    ## changed from 0.01 to 0.2
+    label_rate = 0.1 # labeled sample / unlabeled sample
     balance = True
 
     mode = "base"
