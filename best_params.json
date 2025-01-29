@@ -1,0 +1,7 @@
+{
+    "batch_size": 64,
+    "lambda2": 0.01,
+    "lr": 0.005,
+    "n_epochs": 1000,
+    "warmup": 0.1
+}
