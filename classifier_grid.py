@@ -126,6 +126,7 @@ def grid_search_classifier(args, data, labels, label_index, training_rate, label
             # Update best if current is better
             if f1 > best_f1:
                 best_f1 = f1
+                best_acc = acc
                 best_params = params
                 best_model = copy.deepcopy(model)
                 
@@ -140,6 +141,7 @@ def grid_search_classifier(args, data, labels, label_index, training_rate, label
     print("\nGrid search completed!")
     print(f"Best parameters: {best_params}")
     print(f"Best F1 score: {best_f1:.4f}")
+    print(f"Best Accuracy: {best_acc:.4f}")
     
     # Use best model for final predictions
     if best_model is not None:
