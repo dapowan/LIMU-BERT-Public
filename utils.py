@@ -145,25 +145,23 @@ def prepare_pretrain_dataset(data, labels, training_rate, seed=None):
     return data_train, label_train, data_vali, label_vali
 
 
+
 def handle_external_splits(train_data, train_labels, test_data, test_labels,
                          label_index=0, vali_rate=0.1, change_shape=True,
                          merge=0, merge_mode='all'):
-    # Combine data back
-    data = np.concatenate([train_data, test_data], axis=0)
-    labels = np.concatenate([train_labels, test_labels], axis=0)
     
-    # Split exactly like internal mode
-    train_num = int(data.shape[0] * 0.8)  # 80% training
-    vali_num = int(data.shape[0] * 0.1)   # 10% validation
+    # Split training data into train and validation
+    train_num = int(train_data.shape[0] * (1-vali_rate))  # 90% train, 10% validation
     
-    data_train = data[:train_num]
-    data_vali = data[train_num:train_num+vali_num]
-    data_test = data[train_num+vali_num:]
+    data_train = train_data[:train_num]
+    data_vali = train_data[train_num:]
+    data_test = test_data
     
-    t = np.min(labels[:, :, label_index])
-    label_train = labels[:train_num, ..., label_index] - t
-    label_vali = labels[train_num:train_num+vali_num, ..., label_index] - t
-    label_test = labels[train_num+vali_num:, ..., label_index] - t
+    # Process labels
+    t = np.min(train_labels[:, :, label_index])
+    label_train = train_labels[:train_num, ..., label_index] - t
+    label_vali = train_labels[train_num:, ..., label_index] - t
+    label_test = test_labels[..., label_index] - t
 
     if change_shape:
         data_train = reshape_data(data_train, merge)
@@ -175,11 +173,11 @@ def handle_external_splits(train_data, train_labels, test_data, test_labels,
         
     if change_shape and merge != 0:
         data_train, label_train = merge_dataset(data_train, label_train, mode=merge_mode)
-        data_test, label_test = merge_dataset(data_test, label_test, mode=merge_mode)
         data_vali, label_vali = merge_dataset(data_vali, label_vali, mode=merge_mode)
-        
+        data_test, label_test = merge_dataset(data_test, label_test, mode=merge_mode)
+    
+    print("Train:", data_train.shape, "Val:", data_vali.shape, "Test:", data_test.shape)    
     return data_train, label_train, data_vali, label_vali, data_test, label_test
-
 
 
 
