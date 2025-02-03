@@ -26,6 +26,57 @@ from utils import get_device, handle_argv \
     , IMUDataset, load_classifier_config, prepare_classifier_dataset, prepare_classifier_dataset_ext
 
 
+def classify_embeddings_ext(args, train_data, train_labels, test_data, test_labels, label_index, training_rate, label_rate, balance=False, method=None):
+    train_cfg, model_cfg, dataset_cfg = load_classifier_config(args)
+    label_names, label_num = load_dataset_label_names(dataset_cfg, label_index)
+    data_train, label_train, data_vali, label_vali, data_test, label_test \
+       = prepare_classifier_dataset_ext(
+           split_mode='external',
+           train_data=train_data, 
+           train_labels=train_labels,
+           test_data=test_data,
+           test_labels=test_labels,
+           label_index=label_index,
+           training_rate=training_rate,
+           label_rate=label_rate,
+           merge=model_cfg.seq_len,
+           seed=train_cfg.seed,
+           balance=balance
+       )
+   
+    data_set_train = IMUDataset(data_train, label_train)
+    data_set_vali = IMUDataset(data_vali, label_vali)
+    data_set_test = IMUDataset(data_test, label_test)
+    data_loader_train = DataLoader(data_set_train, shuffle=True, batch_size=train_cfg.batch_size)
+    data_loader_vali = DataLoader(data_set_vali, shuffle=False, batch_size=train_cfg.batch_size)
+    # In classify_embeddings_ext function:
+    data_loader_test = DataLoader(IMUDataset(data_test, label_test), shuffle=False, batch_size=train_cfg.batch_size)
+
+    criterion = nn.CrossEntropyLoss()
+    model = fetch_classifier(method, model_cfg, input=data_train.shape[-1], output=label_num)
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=train_cfg.lr)  # , weight_decay=0.95
+    trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, get_device(args.gpu))
+
+    def func_loss(model, batch):
+        inputs, label = batch
+        logits = model(inputs, True)
+        loss = criterion(logits, label)
+        return loss
+
+    def func_forward(model, batch):
+        inputs, label = batch
+        logits = model(inputs, False)
+        return logits, label
+
+    def func_evaluate(label, predicts):
+        stat = stat_acc_f1(label.cpu().numpy(), predicts.cpu().numpy())
+        return stat
+
+    trainer.train(func_loss, func_forward, func_evaluate, data_loader_train, data_loader_test, data_loader_vali)
+    label_estimate_test = trainer.run(func_forward, None, data_loader_test)
+    return label_test, label_estimate_test
+
+
 def classify_embeddings(args, data, labels, label_index, training_rate, label_rate, balance=False, method=None):
     train_cfg, model_cfg, dataset_cfg = load_classifier_config(args)
     label_names, label_num = load_dataset_label_names(dataset_cfg, label_index)
@@ -161,60 +212,39 @@ def augment_embedding_data(embedding_data, n_augmentations=1):
     return augmented_data
 
 
-
 if __name__ == "__main__":
-    training_rate = 0.8
-    label_rate = 0.05
-    balance = True
-    mode = "base"
-    method = "gru"
-    
-    args = handle_argv('classifier_' + mode + "_" + method, 'train.json', method)
-    
-    # For internal splitting (existing way)
-    embedding, labels = load_embedding_label(args.model_file, args.dataset, 
-                                          args.dataset_version)
-    print("size of embedding: ", embedding.shape)
-    
-    # Augment data as before
-    n_augmentations = 5
-    augmented_embedding = augment_embedding_data(embedding, 
-                                               n_augmentations=n_augmentations)
-    combined_embedding = np.concatenate([embedding, augmented_embedding], axis=0)
-    combined_labels = np.tile(labels, (n_augmentations + 1, 1, 1))
-    
-    # Choose either internal or external splitting
-    if args.split_mode == 'internal':
-        # Internal splitting (existing way)
-        label_test, label_estimate_test = classify_embeddings(
-            args, combined_embedding, combined_labels, args.label_index,
-            training_rate, label_rate, balance=balance, method=method)
-    else:
-        # External splitting (new way)
-        # Load external train/test splits
-        train_data = np.load('train_data.npy')
-        train_labels = np.load('train_labels.npy')
-        test_data = np.load('test_data.npy')
-        test_labels = np.load('test_labels.npy')
-        
-        # Pass to classifier with external splits
-        label_test, label_estimate_test = classify_embeddings(
-            args, data=None, labels=None,
-            split_mode='external',
-            train_data=train_data,
-            train_labels=train_labels,
-            test_data=test_data,
-            test_labels=test_labels,
-            label_index=args.label_index,
-            training_rate=training_rate,
-            label_rate=label_rate,
-            balance=balance,
-            method=method)
-    
-    # Continue with evaluation as before
-    label_names, label_num = load_dataset_label_names(args.dataset_cfg, 
-                                                    args.label_index)
-    acc, matrix, f1 = stat_results(label_test, label_estimate_test)
-    matrix_norm = plot_matrix(matrix, label_names)
+   training_rate = 0.8
+   label_rate = 0.05
+   balance = True
+   mode = "base" 
+   method = "gru"
+   
+   args = handle_argv('classifier_' + mode + "_" + method, 'train.json', method)
+   embedding, labels = load_embedding_label(args.model_file, args.dataset, args.dataset_version)
+   print("size of embedding:", embedding.shape)
+   
+   # Internal split
+   """internal_results = classify_embeddings(args, embedding, labels, args.label_index,
+                                        training_rate, label_rate, balance=balance, method=method)
 
+   # Save splits
+   train_size = int(len(embedding) * training_rate)
+   np.save('train_data.npy', embedding[:train_size])
+   np.save('train_labels.npy', labels[:train_size])  
+   np.save('test_data.npy', embedding[train_size:])
+   np.save('test_labels.npy', labels[train_size:])"""
 
+   # External split using saved files
+   external_results = classify_embeddings_ext(
+       args,
+       train_data=np.load('train_data.npy'),
+       train_labels=np.load('train_labels.npy'), 
+       test_data=np.load('test_data.npy'),
+       test_labels=np.load('test_labels.npy'),
+       label_index=args.label_index,
+       training_rate=training_rate,
+       label_rate=label_rate,
+       balance=balance,
+       method=method
+   )
+   print("External Split Results:", external_results[0].shape)

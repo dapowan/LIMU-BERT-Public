@@ -147,66 +147,37 @@ def prepare_pretrain_dataset(data, labels, training_rate, seed=None):
 
 def handle_external_splits(train_data, train_labels, test_data, test_labels,
                          label_index=0, vali_rate=0.1, change_shape=True,
-                         merge=0, merge_mode='all', shuffle=True):
-    """
-    Handles external train/test splits and creates validation set from training data.
+                         merge=0, merge_mode='all'):
+    # Combine data back
+    data = np.concatenate([train_data, test_data], axis=0)
+    labels = np.concatenate([train_labels, test_labels], axis=0)
     
-    Args:
-        train_data: Training data from external file
-        train_labels: Training labels from external file
-        test_data: Test data from external file
-        test_labels: Test labels from external file
-        label_index: Index of the label to use
-        vali_rate: Rate of validation data to take from training set
-        change_shape: Whether to reshape data
-        merge: Merge parameter
-        merge_mode: Mode for merging
-        shuffle: Whether to shuffle the data
-    """
-    # Handle validation split from training data
-    arr = np.arange(train_data.shape[0])
-    if shuffle:
-        np.random.shuffle(arr)
+    # Split exactly like internal mode
+    train_num = int(data.shape[0] * 0.8)  # 80% training
+    vali_num = int(data.shape[0] * 0.1)   # 10% validation
     
-    train_data = train_data[arr]
-    train_labels = train_labels[arr]
+    data_train = data[:train_num]
+    data_vali = data[train_num:train_num+vali_num]
+    data_test = data[train_num+vali_num:]
     
-    # Calculate validation size
-    vali_num = int(train_data.shape[0] * vali_rate)
-    
-    # Split training data into train and validation
-    data_train = train_data[vali_num:, ...]
-    data_vali = train_data[:vali_num, ...]
-    
-    # Get minimum label value for normalization
-    t = np.min(train_labels[:, :, label_index])
-    
-    # Split labels and normalize
-    label_train = train_labels[vali_num:, ..., label_index] - t
-    label_vali = train_labels[:vali_num, ..., label_index] - t
-    label_test = test_labels[..., label_index] - t
-    
-    # Apply shape changes if needed
+    t = np.min(labels[:, :, label_index])
+    label_train = labels[:train_num, ..., label_index] - t
+    label_vali = labels[train_num:train_num+vali_num, ..., label_index] - t
+    label_test = labels[train_num+vali_num:, ..., label_index] - t
+
     if change_shape:
         data_train = reshape_data(data_train, merge)
         data_vali = reshape_data(data_vali, merge)
-        data_test = reshape_data(test_data, merge)
+        data_test = reshape_data(data_test, merge)
         label_train = reshape_label(label_train, merge)
         label_vali = reshape_label(label_vali, merge)
         label_test = reshape_label(label_test, merge)
-    
-    # Apply merging if needed
+        
     if change_shape and merge != 0:
-        data_train, label_train = merge_dataset(data_train, label_train, 
-                                              mode=merge_mode)
-        data_test, label_test = merge_dataset(data_test, label_test, 
-                                            mode=merge_mode)
-        data_vali, label_vali = merge_dataset(data_vali, label_vali, 
-                                            mode=merge_mode)
-    
-    print('Train Size: %d, Vali Size: %d, Test Size: %d' % 
-          (label_train.shape[0], label_vali.shape[0], label_test.shape[0]))
-    
+        data_train, label_train = merge_dataset(data_train, label_train, mode=merge_mode)
+        data_test, label_test = merge_dataset(data_test, label_test, mode=merge_mode)
+        data_vali, label_vali = merge_dataset(data_vali, label_vali, mode=merge_mode)
+        
     return data_train, label_train, data_vali, label_vali, data_test, label_test
 
 
@@ -288,7 +259,7 @@ def prepare_classifier_dataset(data, labels, label_index=0, training_rate=0.8, l
 
 
 def partition_and_reshape(data, labels, label_index=0, training_rate=0.8, vali_rate=0.1, change_shape=True
-                          , merge=0, merge_mode='all', shuffle=True):
+                          , merge=0, merge_mode='all', shuffle=False):
     arr = np.arange(data.shape[0])
     if shuffle:
         np.random.shuffle(arr)
@@ -320,7 +291,7 @@ def partition_and_reshape(data, labels, label_index=0, training_rate=0.8, vali_r
 
 def prepare_simple_dataset(data, labels, training_rate=0.2):
     arr = np.arange(data.shape[0])
-    np.random.shuffle(arr)
+    #np.random.shuffle(arr)
     data = data[arr]
     labels = labels[arr]
     train_num = int(data.shape[0] * training_rate)
@@ -350,7 +321,7 @@ def prepare_simple_dataset_balance(data, labels, training_rate=0.8):
     for i in range(labels_unique.size):
         class_index = np.argwhere(labels == labels_unique[i])
         class_index = class_index.reshape(class_index.size)
-        np.random.shuffle(class_index)
+        # np.random.shuffle(class_index)
         temp = class_index[:train_num]
         index[temp] = True
     t = np.min(labels)

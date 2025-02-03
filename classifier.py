@@ -172,7 +172,8 @@ if __name__ == "__main__":
     method = "gru"
     args = handle_argv('classifier_' + mode + "_" + method, 'train.json', method)
     embedding, labels = load_embedding_label(args.model_file, args.dataset, args.dataset_version)
-    print("size of embedding: ", embedding.shape)
+    print("size of embedding: ", embedding.shape, "size of labels: ", labels.shape)
+
 
     n_augmentations = 5
 
@@ -187,9 +188,9 @@ if __name__ == "__main__":
     label_test, label_estimate_test = classify_embeddings(args, combined_embedding, combined_labels, 
                                                         args.label_index, training_rate, label_rate, 
                                                         balance=balance, method=method)
-
-    '''label_test, label_estimate_test = classify_embeddings(args, embedding, labels, args.label_index,
-                                                          training_rate, label_rate, balance=balance, method=method)'''
+    
+    #label_test, label_estimate_test = classify_embeddings(args, embedding, labels, args.label_index,
+    #                                                      training_rate, label_rate, balance=balance, method=method)
 
     label_names, label_num = load_dataset_label_names(args.dataset_cfg, args.label_index)
     acc, matrix, f1 = stat_results(label_test, label_estimate_test)

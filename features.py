@@ -14,6 +14,15 @@ def compute_energy(seqs):
     return energy
 
 
+def to_numpy(tensor):
+    if tensor.device.type == 'mps':
+        return tensor.detach().cpu().numpy()
+    elif tensor.is_cuda:
+        return tensor.cpu().numpy()
+    return tensor.numpy()
+
+
+
 def detect_nucleus(energy, window=20, nucleus_thres=8):
     """
     Detects the nucleus of gestures based on changes in signal energy.
@@ -33,7 +42,7 @@ def detect_nucleus(energy, window=20, nucleus_thres=8):
         change_pts = []
 
         # Convert each sequence to a list of scalars (optional if already 1D)
-        sequence_energy = sequence_energy.cpu().numpy() if sequence_energy.is_cuda else sequence_energy.numpy()
+        sequence_energy = to_numpy(sequence_energy)
 
         # Sliding window to detect energy changes
         for i in range(len(sequence_energy) - 15):
