@@ -145,6 +145,131 @@ def prepare_pretrain_dataset(data, labels, training_rate, seed=None):
     return data_train, label_train, data_vali, label_vali
 
 
+def handle_external_splits(train_data, train_labels, test_data, test_labels,
+                         label_index=0, vali_rate=0.1, change_shape=True,
+                         merge=0, merge_mode='all', shuffle=True):
+    """
+    Handles external train/test splits and creates validation set from training data.
+    
+    Args:
+        train_data: Training data from external file
+        train_labels: Training labels from external file
+        test_data: Test data from external file
+        test_labels: Test labels from external file
+        label_index: Index of the label to use
+        vali_rate: Rate of validation data to take from training set
+        change_shape: Whether to reshape data
+        merge: Merge parameter
+        merge_mode: Mode for merging
+        shuffle: Whether to shuffle the data
+    """
+    # Handle validation split from training data
+    arr = np.arange(train_data.shape[0])
+    if shuffle:
+        np.random.shuffle(arr)
+    
+    train_data = train_data[arr]
+    train_labels = train_labels[arr]
+    
+    # Calculate validation size
+    vali_num = int(train_data.shape[0] * vali_rate)
+    
+    # Split training data into train and validation
+    data_train = train_data[vali_num:, ...]
+    data_vali = train_data[:vali_num, ...]
+    
+    # Get minimum label value for normalization
+    t = np.min(train_labels[:, :, label_index])
+    
+    # Split labels and normalize
+    label_train = train_labels[vali_num:, ..., label_index] - t
+    label_vali = train_labels[:vali_num, ..., label_index] - t
+    label_test = test_labels[..., label_index] - t
+    
+    # Apply shape changes if needed
+    if change_shape:
+        data_train = reshape_data(data_train, merge)
+        data_vali = reshape_data(data_vali, merge)
+        data_test = reshape_data(test_data, merge)
+        label_train = reshape_label(label_train, merge)
+        label_vali = reshape_label(label_vali, merge)
+        label_test = reshape_label(label_test, merge)
+    
+    # Apply merging if needed
+    if change_shape and merge != 0:
+        data_train, label_train = merge_dataset(data_train, label_train, 
+                                              mode=merge_mode)
+        data_test, label_test = merge_dataset(data_test, label_test, 
+                                            mode=merge_mode)
+        data_vali, label_vali = merge_dataset(data_vali, label_vali, 
+                                            mode=merge_mode)
+    
+    print('Train Size: %d, Vali Size: %d, Test Size: %d' % 
+          (label_train.shape[0], label_vali.shape[0], label_test.shape[0]))
+    
+    return data_train, label_train, data_vali, label_vali, data_test, label_test
+
+
+
+
+def prepare_classifier_dataset_ext(data=None, labels=None, split_mode='internal',
+                               train_data=None, train_labels=None,
+                               test_data=None, test_labels=None,
+                               label_index=0, training_rate=0.8, label_rate=1.0, 
+                               change_shape=True, merge=0, merge_mode='all', 
+                               seed=None, balance=False):
+    """
+    Prepares dataset for classification with support for both internal and external splits.
+    
+    Args:
+        data: Full dataset (for internal split mode)
+        labels: Full labels (for internal split mode)
+        split_mode: 'internal' or 'external'
+        train_data: Training data (for external split mode)
+        train_labels: Training labels (for external split mode)
+        test_data: Test data (for external split mode)
+        test_labels: Test labels (for external split mode)
+        label_index: Index of the label to use
+        training_rate: Rate for train/val split
+        label_rate: Rate of labeled data to use
+        change_shape: Whether to reshape data
+        merge: Merge parameter
+        merge_mode: Mode for merging
+        seed: Random seed
+        balance: Whether to balance dataset
+    """
+    set_seeds(seed)
+    
+    if split_mode == 'internal':
+        # Use existing internal split logic
+        data_train, label_train, data_vali, label_vali, data_test, label_test = \
+            partition_and_reshape(data, labels, label_index=label_index, 
+                                training_rate=training_rate, vali_rate=0.1,
+                                change_shape=change_shape, merge=merge, 
+                                merge_mode=merge_mode)
+    else:
+        # Handle external split data
+        data_train, label_train, data_vali, label_vali, data_test, label_test = \
+            handle_external_splits(train_data, train_labels, test_data, test_labels,
+                                 label_index=label_index, vali_rate=0.1,
+                                 change_shape=change_shape, merge=merge,
+                                 merge_mode=merge_mode)
+    
+    # Apply label_rate to training data (semi-supervised learning)
+    set_seeds(seed)
+    if balance:
+        data_train_label, label_train_label, _, _ = \
+            prepare_simple_dataset_balance(data_train, label_train, 
+                                        training_rate=label_rate)
+    else:
+        data_train_label, label_train_label, _, _ = \
+            prepare_simple_dataset(data_train, label_train, 
+                                 training_rate=label_rate)
+    
+    return data_train_label, label_train_label, data_vali, label_vali, \
+           data_test, label_test
+
+
 def prepare_classifier_dataset(data, labels, label_index=0, training_rate=0.8, label_rate=1.0, change_shape=True
                                , merge=0, merge_mode='all', seed=None, balance=False):
 
