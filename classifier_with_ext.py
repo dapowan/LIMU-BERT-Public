@@ -214,7 +214,7 @@ def augment_embedding_data(embedding_data, n_augmentations=1):
 
 if __name__ == "__main__":
    training_rate = 0.8
-   label_rate = 0.05
+   label_rate = 0.1
    balance = True
    mode = "base" 
    method = "gru"
@@ -237,10 +237,10 @@ if __name__ == "__main__":
    # External split using saved files
    external_results = classify_embeddings_ext(
        args,
-       train_data=np.load('train_data.npy'),
-       train_labels=np.load('train_labels.npy'), 
-       test_data=np.load('test_data.npy'),
-       test_labels=np.load('test_labels.npy'),
+       train_data=np.load('embed/embed_limu_v1_augmented_data_20_120.npy'),
+       train_labels=np.load('dataset/augmented_data/label_20_120.npy'), 
+       test_data=np.load('embed/embed_limu_v1_test_data_20_120.npy'),
+       test_labels=np.load('dataset/test_data/label_20_120.npy'),
        label_index=args.label_index,
        training_rate=training_rate,
        label_rate=label_rate,

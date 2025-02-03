@@ -227,6 +227,12 @@ def prepare_classifier_dataset_ext(data=None, labels=None, split_mode='internal'
                                  merge_mode=merge_mode)
     
     # Apply label_rate to training data (semi-supervised learning)
+    print("size of data_train: ", data_train.shape)
+    print("size of label_train: ", label_train.shape)
+    print("size of data_vali: ", data_vali.shape)
+    print("size of label_vali: ", label_vali.shape)
+    print("size of data_test: ", data_test.shape)
+    print("size of label_test: ", label_test.shape)
     set_seeds(seed)
     if balance:
         data_train_label, label_train_label, _, _ = \
