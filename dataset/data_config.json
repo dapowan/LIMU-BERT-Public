@@ -41,6 +41,18 @@
         "size": 2088
     },
 
+    "earbud_20_120": {
+        "sr": 20,
+        "seq_len": 120,
+        "dimension": 6,
+        "activity_label_index": 0,
+        "activity_label_size": 11,
+        "activity_label": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
+        "user_label_index": 1,
+        "user_label_size": 10,
+        "size": 1538
+    },
+
     "blind_user_20_120": {
         "sr": 20,
         "seq_len": 120,
@@ -64,6 +76,7 @@
         "user_label_size": 10,
         "size": 1439
     },
+
 
     "blind_shape_20_120": {
         "sr": 20,
@@ -151,17 +164,7 @@
         "size": 1538
     },
 
-    "earbud_20_120": {
-        "sr": 20,
-        "seq_len": 120,
-        "dimension": 6,
-        "activity_label_index": 1,
-        "activity_label_size": 11,
-        "activity_label": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"],
-        "user_label_index": 0,
-        "user_label_size": 10,
-        "size": 1538
-    },
+
 
     "words_50_100": {
         "sr": 50,
