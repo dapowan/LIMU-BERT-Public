@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     training_rate = 0.8 # unlabeled sample / total sample
     ## changed from 0.01 to 0.1
-    label_rate = 0.05 # labeled sample / unlabeled sample
+    label_rate = 0.001 # labeled sample / unlabeled sample
     balance = True
 
     mode = "base"

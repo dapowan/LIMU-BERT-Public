@@ -529,7 +529,7 @@ def handle_argv(target, config_train, prefix):
     parser.add_argument('model_version', type=str, help='Model config')
     parser.add_argument('dataset', type=str, help='Dataset name', choices=['hhar', 'motion', 'uci', 'shoaib', 'blind_user', 'sighted_user', 
                                                                            'blind_fine_tune', 'augmented_data', 'test_data', 'blind_access_wear', 
-                                                                           'blind_shape', 'blind_compound'])
+                                                                           'blind_shape', 'blind_compound', 'smart_watch'])
                                                                            
     parser.add_argument('dataset_version',  type=str, help='Dataset version', choices=['10_100', '20_120', '20_40'])
     parser.add_argument('-g', '--gpu', type=str, default=None, help='Set specific GPU')
