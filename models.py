@@ -186,20 +186,79 @@ class Transformer(nn.Module):
 
 
 class LIMUBertModel4Pretrain(nn.Module):
-
-    def __init__(self, cfg, output_embed=False):
+    """
+    Enhanced LIMU-BERT model that incorporates semantic awareness through cross-attention
+    while maintaining original IMU reconstruction capabilities.
+    
+    The model architecture consists of:
+    1. Original IMU transformer encoder
+    2. Cross-attention mechanism for semantic integration
+    3. Reconstruction decoder
+    4. Optional semantic projection head
+    
+    The model can operate in two modes:
+    - Standard mode: Performs regular IMU sequence reconstruction
+    - Semantic-aware mode: Incorporates semantic information for enhanced understanding
+    
+    Args:
+        cfg: Configuration object containing model parameters
+        output_embed (bool): Whether to output embeddings instead of reconstructions
+        semantic_weight (float): Weight for semantic integration (default: 0.2)
+    
+    Forward Pass:
+        - Takes IMU sequences and optional semantic embeddings
+        - Processes through transformer encoder
+        - If semantic embeddings provided, applies cross-attention
+        - Outputs either reconstructed sequences or embeddings
+    """
+    def __init__(self, cfg, output_embed=False, semantic_weight=0.2):
         super().__init__()
-        self.transformer = Transformer(cfg) # encoder
+        self.transformer = Transformer(cfg)  # original encoder
         self.fc = nn.Linear(cfg.hidden, cfg.hidden)
         self.linear = nn.Linear(cfg.hidden, cfg.hidden)
         self.activ = gelu
         self.norm = LayerNorm(cfg)
         self.decoder = nn.Linear(cfg.hidden, cfg.feature_num)
         self.output_embed = output_embed
+        self.semantic_weight = semantic_weight
+        
+        # New components for semantic integration
+        self.semantic_attention = nn.MultiheadAttention(
+            embed_dim=cfg.hidden,
+            num_heads=8,
+            batch_first=True
+        )
+        self.semantic_projection = nn.Linear(cfg.hidden, cfg.hidden)
+        self.semantic_norm = LayerNorm(cfg)
 
-    def forward(self, input_seqs, masked_pos=None, nucleus_mask=None, sig_axis_mask=None):
-        # Embed the input sequence
-        h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask, sig_axis_mask=sig_axis_mask)
+    def forward(self, input_seqs, masked_pos=None, semantic_embeds=None, 
+               nucleus_mask=None, sig_axis_mask=None):
+        """
+        Enhanced forward pass that handles both IMU reconstruction and semantic integration.
+        
+        Args:
+            input_seqs: Input IMU sequences
+            masked_pos: Positions of masked tokens for reconstruction
+            semantic_embeds: Optional semantic embeddings for activities
+            nucleus_mask: Optional nucleus mask
+            sig_axis_mask: Optional signal axis mask
+            
+        Returns:
+            Either reconstructed IMU sequences or embeddings depending on mode
+        """
+        # Get transformer embeddings
+        h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask, 
+                                  sig_axis_mask=sig_axis_mask)
+        
+        # Apply semantic attention if embeddings provided
+        if semantic_embeds is not None:
+            # Cross-attention between IMU and semantic features
+            semantic_context, _ = self.semantic_attention(
+                h_masked, semantic_embeds, semantic_embeds
+            )
+            # Combine IMU and semantic features
+            h_masked = h_masked + self.semantic_weight * self.semantic_projection(semantic_context)
+            h_masked = self.semantic_norm(h_masked)
 
         if self.output_embed:
             return h_masked
@@ -207,9 +266,11 @@ class LIMUBertModel4Pretrain(nn.Module):
         if masked_pos is not None:
             masked_pos = masked_pos[:, :, None].expand(-1, -1, h_masked.size(-1))
             h_masked = torch.gather(h_masked, 1, masked_pos)
+            
         h_masked = self.activ(self.linear(h_masked))
         h_masked = self.norm(h_masked)
         logits_lm = self.decoder(h_masked)
+        
         return logits_lm
 
 

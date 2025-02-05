@@ -14,7 +14,8 @@ import torch.nn as nn
 import copy
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
+from semantic_utils import prepare_bert_embeddings
+from losses import semantic_aware_loss
 import models, train
 from config import MaskConfig, TrainConfig, PretrainModelConfig
 from models import LIMUBertModel4Pretrain
@@ -25,6 +26,19 @@ from utils import set_seeds, get_device \
 
 def main(args, training_rate):
     data, labels, train_cfg, model_cfg, mask_cfg, dataset_cfg = load_pretrain_data_config(args)
+    label_to_activity = {
+        # You'll provide this mapping
+        0: "walking",
+        1: "running",
+        # etc...
+    }
+
+    semantic_embeds, similarity_matrix = prepare_bert_embeddings(
+        labels[:, 0],  # Assuming labels are in the first column
+        label_to_activity
+    )
+
+
 
     pipeline = [Preprocess4Normalization(model_cfg.feature_num), Preprocess4Mask(mask_cfg)]
     # pipeline = [Preprocess4Mask(mask_cfg)]
@@ -44,11 +58,15 @@ def main(args, training_rate):
     trainer = train.Trainer(train_cfg, model, optimizer, args.save_path, device)
 
     def func_loss(model, batch):
-        mask_seqs, masked_pos, seqs = batch #
-
-        seq_recon = model(mask_seqs, masked_pos) #
-        loss_lm = criterion(seq_recon, seqs) # for masked LM
-        return loss_lm
+        mask_seqs, masked_pos, seqs = batch
+        seq_recon = model(mask_seqs, masked_pos)
+        loss = semantic_aware_loss(
+            seq_recon, 
+            seqs,
+            semantic_embeds,
+            similarity_matrix
+        )
+        return loss
 
     def func_forward(model, batch):
         mask_seqs, masked_pos, seqs = batch
