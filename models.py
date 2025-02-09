@@ -114,7 +114,6 @@ class MultiHeadedSelfAttention(nn.Module):
         self.proj_q = nn.Linear(cfg.hidden, cfg.hidden)
         self.proj_k = nn.Linear(cfg.hidden, cfg.hidden)
         self.proj_v = nn.Linear(cfg.hidden, cfg.hidden)
-        # self.drop = nn.Dropout(cfg.p_drop_attn)
         self.scores = None # for visualization
         self.n_heads = cfg.n_heads
 
@@ -130,10 +129,8 @@ class MultiHeadedSelfAttention(nn.Module):
         # (B, H, S, W) @ (B, H, W, S) -> (B, H, S, S) -softmax-> (B, H, S, S)
         scores = q @ k.transpose(-2, -1) / np.sqrt(k.size(-1))
 
-        ## adding significant axis mask      
-        '''if sig_axis_mask is not None:
+        if sig_axis_mask is not None:
             scores = scores * sig_axis_mask[:, None, None, :]  # Broadcasting to match dimensions
-        '''
 
         scores = F.softmax(scores, dim=-1)
         # (B, H, S, S) @ (B, H, S, W) -> (B, H, S, W) -trans-> (B, S, H, W)
@@ -142,7 +139,6 @@ class MultiHeadedSelfAttention(nn.Module):
         h = merge_last(h, 2)
         self.scores = scores
         return h
-
 
 class PositionWiseFeedForward(nn.Module):
     """ FeedForward Neural Networks for each position """
@@ -162,27 +158,32 @@ class Transformer(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.embed = Embeddings(cfg)
-        # Original BERT not used parameter-sharing strategies
-        # self.blocks = nn.ModuleList([Block(cfg) for _ in range(cfg.n_layers)])
-
-        # To used parameter-sharing strategies
         self.n_layers = cfg.n_layers
         self.attn = MultiHeadedSelfAttention(cfg)
         self.proj = nn.Linear(cfg.hidden, cfg.hidden)
         self.norm1 = LayerNorm(cfg)
         self.pwff = PositionWiseFeedForward(cfg)
         self.norm2 = LayerNorm(cfg)
-        # self.drop = nn.Dropout(cfg.p_drop_hidden)
 
-    def forward(self, x, nucleus_mask=None, sig_axis_mask=None):
-        h = self.embed(x, nucleus_mask=nucleus_mask)
+    def forward(self, input_seqs, nucleus_mask=None, sig_axis_mask=None):
+        """
+        Forward pass for transformer processing
+        """
+        # Get embeddings (now using the existing method with masks)
+        h = self.embed(input_seqs, nucleus_mask, sig_axis_mask)
 
+        # Apply multi-headed self-attention for each layer
         for _ in range(self.n_layers):
-            #h = self.attn(h, sig_axis_mask=sig_axis_mask)  # Pass the significant axis mask
-            h = self.attn(h)
-            h = self.norm1(h + self.proj(h))
-            h = self.norm2(h + self.pwff(h))
+            # Self-attention
+            h_attn = self.attn(h, sig_axis_mask=sig_axis_mask)
+            h = self.norm1(h + h_attn)
+
+            # Position-wise feed-forward
+            h_ff = self.pwff(h)
+            h = self.norm2(h + h_ff)
+
         return h
+    
 
 
 class LIMUBertModel4Pretrain(nn.Module):
@@ -204,25 +205,22 @@ class LIMUBertModel4Pretrain(nn.Module):
         cfg: Configuration object containing model parameters
         output_embed (bool): Whether to output embeddings instead of reconstructions
         semantic_weight (float): Weight for semantic integration (default: 0.2)
-    
-    Forward Pass:
-        - Takes IMU sequences and optional semantic embeddings
-        - Processes through transformer encoder
-        - If semantic embeddings provided, applies cross-attention
-        - Outputs either reconstructed sequences or embeddings
     """
     def __init__(self, cfg, output_embed=False, semantic_weight=0.2):
         super().__init__()
+        # Core transformer components
         self.transformer = Transformer(cfg)  # original encoder
         self.fc = nn.Linear(cfg.hidden, cfg.hidden)
         self.linear = nn.Linear(cfg.hidden, cfg.hidden)
         self.activ = gelu
         self.norm = LayerNorm(cfg)
         self.decoder = nn.Linear(cfg.hidden, cfg.feature_num)
+        
+        # Model configuration
         self.output_embed = output_embed
         self.semantic_weight = semantic_weight
         
-        # New components for semantic integration
+        # Semantic integration components
         self.semantic_attention = nn.MultiheadAttention(
             embed_dim=cfg.hidden,
             num_heads=8,
@@ -232,86 +230,52 @@ class LIMUBertModel4Pretrain(nn.Module):
         self.semantic_norm = LayerNorm(cfg)
 
     def forward(self, input_seqs, masked_pos=None, semantic_embeds=None, 
-               nucleus_mask=None, sig_axis_mask=None):
+           nucleus_mask=None, sig_axis_mask=None):
         """
         Enhanced forward pass that handles both IMU reconstruction and semantic integration.
-        
-        Args:
-            input_seqs: Input IMU sequences
-            masked_pos: Positions of masked tokens for reconstruction
-            semantic_embeds: Optional semantic embeddings for activities
-            nucleus_mask: Optional nucleus mask
-            sig_axis_mask: Optional signal axis mask
-            
-        Returns:
-            Either reconstructed IMU sequences or embeddings depending on mode
         """
-        # Get transformer embeddings
+        # Process through transformer
         h_masked = self.transformer(input_seqs, nucleus_mask=nucleus_mask, 
-                                  sig_axis_mask=sig_axis_mask)
+                                sig_axis_mask=sig_axis_mask)
         
         # Apply semantic attention if embeddings provided
         if semantic_embeds is not None:
+            # Reshape semantic embeddings to match multi-head attention expectations
+            # semantic_embeds is currently [num_activities, 1, hidden_dim]
+            # We need to reshape to [num_activities, hidden_dim]
+            semantic_embeds = semantic_embeds.squeeze(1)
+            
+            # Expand semantic embeddings to match batch size
+            batch_size = h_masked.size(0)
+            semantic_embeds = semantic_embeds.unsqueeze(0).expand(batch_size, -1, -1)
+
+            
             # Cross-attention between IMU and semantic features
             semantic_context, _ = self.semantic_attention(
-                h_masked, semantic_embeds, semantic_embeds
+                h_masked,              # query: [batch_size, seq_len, hidden]
+                semantic_embeds,       # key:   [batch_size, num_activities, hidden]
+                semantic_embeds,       # value: [batch_size, num_activities, hidden]
             )
-            # Combine IMU and semantic features
+            
+            # Combine IMU and semantic features with weighted addition
             h_masked = h_masked + self.semantic_weight * self.semantic_projection(semantic_context)
             h_masked = self.semantic_norm(h_masked)
 
+        # Return embeddings if requested
         if self.output_embed:
             return h_masked
 
+        # Handle masked positions for reconstruction
         if masked_pos is not None:
             masked_pos = masked_pos[:, :, None].expand(-1, -1, h_masked.size(-1))
             h_masked = torch.gather(h_masked, 1, masked_pos)
-            
+        
+        # Final processing through MLP layers
         h_masked = self.activ(self.linear(h_masked))
         h_masked = self.norm(h_masked)
         logits_lm = self.decoder(h_masked)
         
         return logits_lm
-
-
-class ClassifierLSTM(nn.Module):
-    def __init__(self, cfg, input=None, output=None):
-        super().__init__()
-        for i in range(cfg.num_rnn):
-            if input is not None and i == 0:
-                self.__setattr__('lstm' + str(i), nn.LSTM(input, cfg.rnn_io[i][1], num_layers=cfg.num_layers[i], batch_first=True))
-            else:
-                self.__setattr__('lstm' + str(i),
-                                 nn.LSTM(cfg.rnn_io[i][0], cfg.rnn_io[i][1], num_layers=cfg.num_layers[i],
-                                         batch_first=True))
-            self.__setattr__('bn' + str(i), nn.BatchNorm1d(cfg.seq_len))
-        for i in range(cfg.num_linear):
-            if output is not None and i == cfg.num_linear - 1:
-                self.__setattr__('lin' + str(i), nn.Linear(cfg.linear_io[i][0], output))
-            else:
-                self.__setattr__('lin' + str(i), nn.Linear(cfg.linear_io[i][0], cfg.linear_io[i][1]))
-        self.activ = cfg.activ
-        self.dropout = cfg.dropout
-        self.num_rnn = cfg.num_rnn
-        self.num_linear = cfg.num_linear
-
-    def forward(self, input_seqs, training=False):
-        h = input_seqs
-        for i in range(self.num_rnn):
-            lstm = self.__getattr__('lstm' + str(i))
-            bn = self.__getattr__('bn' + str(i))
-            h, _ = lstm(h)
-            if self.activ:
-                h = F.relu(h)
-        h = h[:, -1, :]
-        if self.dropout:
-            h = F.dropout(h, training=training)
-        for i in range(self.num_linear):
-            linear = self.__getattr__('lin' + str(i))
-            h = linear(h)
-            if self.activ:
-                h = F.relu(h)
-        return h
 
 
 class ClassifierGRU(nn.Module):
