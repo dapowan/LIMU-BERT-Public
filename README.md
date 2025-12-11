@@ -22,6 +22,8 @@ This project contains following folders and files.
 - [`utils.py`](./utils.py) : some helper functions for preprocessing data or separating dataset.
 
 ## News
+[09/11/2023] We have successfully adopted LIMU-BERT in commercial applications. Our latest model, **[LIMU-BERT-X](https://github.com/WANDS-HKUST/LIMU-BERT_Experience)**, is trained on **1.43 million hours of real-world sensor data** collected from **60K subjects** using **1.1K phone models**. This work has been **accepted to ACM MobiCom 2025**, and you can read the paper **[here](https://dl.acm.org/doi/10.1145/3680207.3765261)**.
+
 [02/10/2023] Our latest work [UniHAR](https://dapowan.github.io/wands_unihar/) is accepted to MobiCom 2023, which is an universal human activity recognition built upon LIMU-BERT.
 
 [03/03/2022] We build a docker image with the environment to run the code directly. Many thanks to [BryanBo-Cao](https://github.com/BryanBo-Cao).
